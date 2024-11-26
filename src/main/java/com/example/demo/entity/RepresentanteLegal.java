@@ -45,10 +45,10 @@ public class RepresentanteLegal {
     @Column(name = "cargo")
     private String cargo;
 
-    @ManyToOne
+    /*@ManyToOne
     @JoinColumn(name = "id_estado", nullable = false)
    
-    private EstadoPPP estado_ppp;
+    private EstadoPPP estado_ppp;*/
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "representanteLegal")
     @JsonIgnore

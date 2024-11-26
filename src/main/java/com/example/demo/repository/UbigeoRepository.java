@@ -7,5 +7,5 @@ import com.example.demo.entity.Ubigeo;
 
 @Repository
 public interface UbigeoRepository extends JpaRepository<Ubigeo, Long>{
-
+	Ubigeo findByDepartamentoAndProvinciaAndDistrito(String departamento, String provincia, String distrito);
 }

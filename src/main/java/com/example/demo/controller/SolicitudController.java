@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,4 +30,10 @@ public class SolicitudController {
         return solicitudes.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(solicitudes);
     }
 	
+ // Endpoint para buscar solicitudes por código
+    @GetMapping("/buscar/{codigo}")
+    public ResponseEntity<List<SolicitudDTO>> buscarSolicitudesPorCodigo(@PathVariable String codigo) {
+        List<SolicitudDTO> solicitudes = practicaRepository.findSolicitudesByCodigo(codigo);
+        return solicitudes.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(solicitudes);
+    }
 }

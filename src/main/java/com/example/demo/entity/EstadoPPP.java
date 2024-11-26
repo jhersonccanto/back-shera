@@ -46,9 +46,9 @@ public class EstadoPPP {
 	@JsonIgnore
 	private Set<Linea> linea;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "estado_ppp")
+	/*@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "estado_ppp")
 	@JsonIgnore
-	private Set<RepresentanteLegal> representante_legal;
+	private Set<RepresentanteLegal> representante_legal;*/
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "estado_ppp")
 	@JsonIgnore
