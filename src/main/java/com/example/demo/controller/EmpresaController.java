@@ -84,6 +84,7 @@ public class EmpresaController {
 
         for (Empresa empresa : empresas) {
             RegistroDTO dto = new RegistroDTO(
+            		empresa.getIdEmpresa(),
                 empresa.getNombre(), 
                 empresa.getRuc(), 
                 empresa.getTelefono(), 
@@ -197,6 +198,7 @@ public class EmpresaController {
 
         return ResponseEntity.ok(empresaActualizada);
     }
+
     
     @DeleteMapping("/eliminar/{id}")
     public ResponseEntity<Void> eliminarEmpresa(@PathVariable Long id) {
