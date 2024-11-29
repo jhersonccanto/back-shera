@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -69,9 +71,40 @@ public class EmpresaController {
 
     @Autowired
     private UbigeoRepository ubigeoRepository;
+    
+    @GetMapping("/listar")
+    public ResponseEntity<List<RegistroDTO>> listarEmpresas() {
+        List<Empresa> empresas = empresaRepository.findAll();
+        
+        if (empresas.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        List<RegistroDTO> listaDTO = new ArrayList<>();
+
+        for (Empresa empresa : empresas) {
+            RegistroDTO dto = new RegistroDTO(
+                empresa.getNombre(), 
+                empresa.getRuc(), 
+                empresa.getTelefono(), 
+                empresa.getCorreo(), 
+                empresa.getUbigeo().getDepartamento(), 
+                empresa.getUbigeo().getDistrito(), 
+                empresa.getUbigeo().getProvincia(), 
+                empresa.getDireccion(), 
+                empresa.getRepresentanteLegal().getNombre(),
+                empresa.getRepresentanteLegal().getCargo(),
+                empresa.getRepresentanteLegal().getCorreo(),
+                empresa.getRepresentanteLegal().getTelefono()
+            );
+            listaDTO.add(dto);
+        }
+
+        return new ResponseEntity<>(listaDTO, HttpStatus.OK);
+    }
 
     @PostMapping("/registrar")
-    public ResponseEntity<String> registrarEmpresa(@RequestBody RegistroDTO dto) {
+    public ResponseEntity<Object> registrarEmpresa(@RequestBody RegistroDTO dto) {
         try {
             // Buscar o crear el Ubigeo
             Ubigeo ubigeo = ubigeoRepository.findByDepartamentoAndProvinciaAndDistrito(
@@ -113,11 +146,84 @@ public class EmpresaController {
 
             empresaRepository.save(empresa);
 
-            return ResponseEntity.ok("Empresa registrada exitosamente con estado 'En Proceso'");
+            // Devuelve un objeto JSON con un mensaje de éxito
+            return ResponseEntity.ok(new ResponseMessage("Empresa registrada exitosamente con estado 'En Proceso'"));
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error al registrar la empresa: " + e.getMessage());
+            // Devuelve un objeto JSON con un mensaje de error
+            return ResponseEntity.status(500).body(new ResponseMessage("Error al registrar la empresa: " + e.getMessage()));
         }
     }
 
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<Empresa> actualizarEmpresa(@PathVariable Long id, @RequestBody RegistroDTO registroDTO) {
+        // Buscar la empresa
+        Empresa empresa = empresaRepository.findById(id).orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
+
+        // Actualizar la empresa con los nuevos datos del DTO
+        empresa.setNombre(registroDTO.getNombreEmpresa());
+        empresa.setRuc(registroDTO.getRucEmpresa());
+        empresa.setTelefono(registroDTO.getTelefonoEmpresa());
+        empresa.setCorreo(registroDTO.getCorreoEmpresa());
+        empresa.setDireccion(registroDTO.getDireccionEmpresa());
+
+        // Actualizar el representante legal
+        RepresentanteLegal representante = empresa.getRepresentanteLegal();
+        representante.setNombre(registroDTO.getNombreRepresentante());
+        representante.setTelefono(registroDTO.getTelefonoRepresentante());
+        representante.setCorreo(registroDTO.getCorreoRepresentante());
+        representante.setCargo(registroDTO.getCargoRepresentante());
+        
+        // Verificar si el ubigeo ya existe
+        Ubigeo ubigeo = ubigeoRepository.findByDepartamentoAndProvinciaAndDistrito(
+                registroDTO.getDepartamentoUbigeo(),
+                registroDTO.getProvinciaUbigeo(),
+                registroDTO.getDistritoUbigeo()
+        );
+        
+        if (ubigeo == null) {
+            // Si no existe, crear un nuevo ubigeo
+            ubigeo = new Ubigeo();
+            ubigeo.setDepartamento(registroDTO.getDepartamentoUbigeo());
+            ubigeo.setProvincia(registroDTO.getProvinciaUbigeo());
+            ubigeo.setDistrito(registroDTO.getDistritoUbigeo());
+            ubigeoRepository.save(ubigeo);  // Guarda el nuevo ubigeo
+        }
+
+        // Asociar el ubigeo actualizado con la empresa
+        empresa.setUbigeo(ubigeo);
+
+        // Guardar la empresa con los cambios
+        Empresa empresaActualizada = empresaRepository.save(empresa);
+
+        return ResponseEntity.ok(empresaActualizada);
+    }
+    
+    @DeleteMapping("/eliminar/{id}")
+    public ResponseEntity<Void> eliminarEmpresa(@PathVariable Long id) {
+        Optional<Empresa> empresa = empresaRepository.findById(id);
+        if (empresa.isPresent()) {
+            empresaRepository.deleteById(id);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+    
+    // Clase auxiliar para la respuesta
+    public class ResponseMessage {
+        private String message;
+
+        public ResponseMessage(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
 
 }

@@ -106,7 +106,5 @@ public class RegistroDTO {
 	public void setTelefonoRepresentante(String telefonoRepresentante) {
 		this.telefonoRepresentante = telefonoRepresentante;
 	}
-	
-    
     
 }
